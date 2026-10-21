@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Meckano Assistant | עריכת דוח חודשי</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Bar -->
+    <header class="header">
+      <div class="header-left">
+        <div class="brand">
+          <span class="brand-icon">⏱️</span>
+          <div>
+            <h1>Meckano Assistant</h1>
+            <span class="brand-sub">ניהול ודיווח נוכחות אוטומטי</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="btnToggleSettings" class="btn-icon" title="הגדרות">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Settings Card (Collapsible) -->
+    <section id="settingsCard" class="card settings-card collapsed">
+      <div class="card-title-row">
+        <h2>🔑 פרטי התחברות והגדרות</h2>
+        <span class="badge" id="envStatusBadge">נטען...</span>
+      </div>
+      <form id="settingsForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="inputEmail">אימייל Meckano</label>
+            <input type="email" id="inputEmail" placeholder="alex@example.com" required dir="ltr">
+          </div>
+          <div class="form-group">
+            <label for="inputPassword">סיסמה</label>
+            <div class="password-wrapper">
+              <input type="password" id="inputPassword" placeholder="השאר ריק כדי לשמור סיסמה קיימת" dir="ltr">
+              <button type="button" id="btnTogglePass" class="btn-sm">👁️</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputDefaultIn">שעת כניסה רגילה</label>
+            <input type="time" id="inputDefaultIn" value="10:00" dir="ltr">
+          </div>
+          <div class="form-group">
+            <label for="inputDefaultOut">שעת יציאה רגילה</label>
+            <input type="time" id="inputDefaultOut" value="19:00" dir="ltr">
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button type="submit" class="btn btn-primary">שמור הגדרות ב-~/.meckano.env</button>
+          <span id="saveStatusText" class="status-inline"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- Cycle Selector -->
+    <section class="cycle-nav">
+      <button id="btnPrevCycle" class="btn-cycle">
+        <span class="arrow">◀</span> חודש קודם
+      </button>
+      <div class="cycle-info">
+        <span class="cycle-label" id="cyclePeriodLabel">21/08/2026 - 20/09/2026</span>
+        <span class="cycle-badge" id="cycleStatusBadge">מחזור שכר 21-20</span>
+      </div>
+      <button id="btnNextCycle" class="btn-cycle">
+        חודש נוכחי <span class="arrow">▶</span>
+      </button>
+    </section>
+
+    <!-- Summary Statistics Bar -->
+    <section class="stats-bar">
+      <div class="stat-item work">
+        <span class="stat-icon">💼</span>
+        <span class="stat-val" id="statWorkCount">0</span>
+        <span class="stat-lbl">ימי עבודה</span>
+      </div>
+      <div class="stat-item vac">
+        <span class="stat-icon">🏖️</span>
+        <span class="stat-val" id="statVacCount">0</span>
+        <span class="stat-lbl">חופש מלא</span>
+      </div>
+      <div class="stat-item half-vac">
+        <span class="stat-icon">🌗</span>
+        <span class="stat-val" id="statHalfVacCount">0</span>
+        <span class="stat-lbl">חצי חופש</span>
+      </div>
+      <div class="stat-item sick">
+        <span class="stat-icon">🤒</span>
+        <span class="stat-val" id="statSickCount">0</span>
+        <span class="stat-lbl">מחלה</span>
+      </div>
+    </section>
+
+    <!-- Calendar View -->
+    <section class="calendar-section card">
+      <div class="calendar-header-row">
+        <div>
+          <h3>לוח נוכחות</h3>
+          <span class="tip">💡 הקש על יום לשינוי סטטוס</span>
+        </div>
+        <div class="view-toggle">
+          <button type="button" id="btnViewGrid" class="btn-toggle active" title="תצוגת לוח">📅 חודשי</button>
+          <button type="button" id="btnViewList" class="btn-toggle" title="תצוגת רשימה">📋 רשימה</button>
+        </div>
+      </div>
+      
+      <!-- Weekday Headers -->
+      <div id="weekdaysGrid" class="weekdays-grid">
+        <div>א׳</div>
+        <div>ב׳</div>
+        <div>ג׳</div>
+        <div>ד׳</div>
+        <div>ה׳</div>
+        <div class="weekend-head">ו׳</div>
+        <div class="weekend-head">ש׳</div>
+      </div>
+
+      <!-- Calendar Days Grid (Month View) -->
+      <div id="calendarGrid" class="calendar-grid">
+        <div class="loading-spinner">טוען נתונים...</div>
+      </div>
+
+      <!-- Calendar List View (Agenda View) -->
+      <div id="calendarList" class="calendar-list" style="display: none;">
+        <!-- Filled by JS -->
+      </div>
+    </section>
+
+    <!-- Action Bar -->
+    <section class="action-footer">
+      <button id="btnDryRun" class="btn btn-secondary">
+        🧪 בדיקה ללא שמירה (Dry Run)
+      </button>
+      <button id="btnSubmitMeckano" class="btn btn-accent btn-large">
+        🚀 מלא ושלח דוח ל-Meckano
+      </button>
+    </section>
+
+    <!-- Screenshot Section -->
+    <section class="card screenshot-card">
+      <div class="card-title-row">
+        <h3>📸 צילום מסך אימות אחרון</h3>
+        <button id="btnRefreshScreenshot" class="btn-sm">🔄 רענן</button>
+      </div>
+      <div class="screenshot-container">
+        <img id="screenshotImg" src="/api/screenshot" alt="צילום מסך מ-Meckano" onerror="this.style.display='none'; document.getElementById('noScreenshotMsg').style.display='block';">
+        <div id="noScreenshotMsg" class="no-data-msg" style="display:none;">
+          טרם בוצעה ריצה או שהצילום אינו זמין עדיין. לחץ "מלא ושלח דוח" כדי להריץ!
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Day Edit Modal / Action Sheet -->
+  <div id="dayModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 id="modalDateTitle">עריכת יום</h3>
+        <button id="btnCloseModal" class="btn-close">&times;</button>
+      </div>
+      <div class="status-options">
+        <button class="status-opt-btn" data-status="work">
+          <span class="icon">💼</span>
+          <div class="opt-text">
+            <strong>יום עבודה רגיל</strong>
+            <small>מילוי שעות 10:00 - 19:00</small>
+          </div>
+        </button>
+        <button class="status-opt-btn" data-status="vacation">
+          <span class="icon">🏖️</span>
+          <div class="opt-text">
+            <strong>יום חופש מלא</strong>
+            <small>סימון "חופש" ומחיקת שעות</small>
+          </div>
+        </button>
+        <button class="status-opt-btn" data-status="half_vacation">
+          <span class="icon">🌗</span>
+          <div class="opt-text">
+            <strong>חצי יום חופש</strong>
+            <small>סימון "חצי יום חופש" (למשל ערב חג)</small>
+          </div>
+        </button>
+        <button class="status-opt-btn" data-status="sick">
+          <span class="icon">🤒</span>
+          <div class="opt-text">
+            <strong>יום מחלה</strong>
+            <small>סימון "מחלה" ומחיקת שעות</small>
+          </div>
+        </button>
+        <button class="status-opt-btn" data-status="off">
+          <span class="icon">⚪</span>
+          <div class="opt-text">
+            <strong>יום חופשי / ללא שעות</strong>
+            <small>איפוס שעות (סופ״ש או חג)</small>
+          </div>
+        </button>
+      </div>
+
+      <!-- Custom hours input (visible when work is selected) -->
+      <div id="customHoursRow" class="custom-hours-row">
+        <label>שעות עבודה אישיות ליום זה:</label>
+        <div class="hours-inputs">
+          <input type="time" id="modalCheckIn" value="10:00" dir="ltr">
+          <span>עד</span>
+          <input type="time" id="modalCheckOut" value="19:00" dir="ltr">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btnSaveDayChange" class="btn btn-primary btn-block">החל שינוי</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Run Progress Modal -->
+  <div id="progressModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-sheet progress-sheet">
+      <div class="modal-header">
+        <h3 id="progressTitle">מריץ דיווח ב-Meckano...</h3>
+        <button id="btnCloseProgress" class="btn-close" style="display:none;">&times;</button>
+      </div>
+      
+      <div class="progress-steps">
+        <div class="step-item" id="step1">
+          <span class="step-bullet">1</span>
+          <span>פתיחת דפדפן Chromium ב-Termux</span>
+        </div>
+        <div class="step-item" id="step2">
+          <span class="step-bullet">2</span>
+          <span>התחברות לחשבון Meckano</span>
+        </div>
+        <div class="step-item" id="step3">
+          <span class="step-bullet">3</span>
+          <span>ניווט לדוח עובד חודשי</span>
+        </div>
+        <div class="step-item" id="step4">
+          <span class="step-bullet">4</span>
+          <span>בחירת תקופת מחזור שכר</span>
+        </div>
+        <div class="step-item" id="step5">
+          <span class="step-bullet">5</span>
+          <span>מילוי שעות וחופשות בעריכה מהירה</span>
+        </div>
+        <div class="step-item" id="step6">
+          <span class="step-bullet">6</span>
+          <span>שמירת נתונים וצילום מסך אימות</span>
+        </div>
+      </div>
+
+      <!-- Live Terminal Console -->
+      <div class="terminal-log" id="terminalLogs">
+        <div class="log-line text-muted">ממתין להתחלת התהליך...</div>
+      </div>
+
+      <div class="progress-footer" id="progressFooter" style="display:none;">
+        <button id="btnDismissProgress" class="btn btn-primary btn-block">סגור וצפה בתוצאות</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

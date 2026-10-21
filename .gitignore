@@ -1,0 +1,7 @@
+node_modules/
+*.log
+server.log
+public/latest_report.png
+.env
+.meckano.env
+.DS_Store

@@ -1,0 +1,20 @@
+{
+  "name": "meckano-dashboard",
+  "version": "1.0.0",
+  "description": "Local web dashboard and Playwright automation engine for Meckano monthly attendance reporting (supports Android/Termux & Desktop)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "meckano",
+    "playwright",
+    "automation",
+    "termux",
+    "attendance"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "playwright-core": "^1.40.0"
+  }
+}
